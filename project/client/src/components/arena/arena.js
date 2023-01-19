@@ -142,7 +142,7 @@ function Arena() {
     async function fetchBestMove() {
         let response = null;
         try {
-          response = await fetch("/api", {
+          response = await fetch("https://aichess.onrender.com/api", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
