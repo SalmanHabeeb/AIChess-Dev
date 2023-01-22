@@ -30,5 +30,5 @@ app.post('/api', jsonParser, (req, res) => {
     res.json(response);
 })
 
-const port = 5000;
+const port = process.env.PORT;
 app.listen(port, () => console.log(`Server started on ${port}`));
