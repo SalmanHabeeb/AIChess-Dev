@@ -23,9 +23,9 @@
 
 // import React, { useState } from 'react';
 // import { useSelector, useDispatch } from 'react-redux';
-import React, { useRef } from "react";
+import React from "react";
 import './form.css';
-import { gameActions } from '../../redux/gameSlice';
+import { gameActions } from '../../store/gameSlice';
 // import { setLevel } from "../../redux/gameSlice";
 import {useDispatch} from "react-redux";
 
@@ -56,7 +56,7 @@ function PlayForm() {
                 <div className="rad-text">3</div>
             </label>
             </div>
-            <button className="start-button" role="button" onClick={() => dispatch(gameActions.setPlay())}><span className="start-text">Start</span></button>
+            <button className="start-button" onClick={() => dispatch(gameActions.setPlay())}><span className="start-text">Start</span></button>
         </div>
         </div>
     )

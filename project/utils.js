@@ -16,9 +16,14 @@ function minimaxRoot(chess, depth, isMaximisingPlayer) {
     for(let i = 0; i < newGameMoves.length; i++) {
         let newGameMove = newGameMoves[i]
         chess.move(newGameMove);
+        if (chess.isCheckmate()) {
+            bestMoveFound = newGameMove;
+            chess.undo();
+            break;
+        }
         let value = minimax(chess, depth - 1, -100000, 100000, !isMaximisingPlayer);
         if (chess.isThreefoldRepetition() | chess.isStalemate() | chess.isDraw()) {
-            value -= 3000;
+            value -= 10000;
         }
         chess.undo();
         if (value === null) {
@@ -79,10 +84,10 @@ function minimax(chess, depth, alpha, beta, isMaximisingPlayer) {
     }
 };
 
-function getBestMove (fen, depth) {    
+function getBestMove (pgn, depth) {    
     // let depth = DEPTH;
     chess = new chessModule.Chess();
-    chess.load(fen);
+    chess.loadPgn(pgn);
     // console.log(constants.K)
     // console.log(chess.moves());
     let bestMove = minimaxRoot(chess, depth, true);

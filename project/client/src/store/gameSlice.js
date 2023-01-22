@@ -21,22 +21,25 @@
 // // along with this program.  
 // // If not, see [GNU General Public License](https://www.gnu.org/licenses/).
 
-import React from 'react';
-import './main.css';
+import { createSlice } from "@reduxjs/toolkit";
+// import { RootState } from "./store";
 
-function MainPage() {
-    return (
-    <div className='main'>
-        <div className='link-box'>
-            <div className='text-cont'>
-                <div className='title'>AIChess</div>
-                <div id="info" className='info'>A web based chess engine</div>
-            </div>
-            <div style={{backgroundImage: `url(${"assets/images/hq-chess-pieces-transparent-hd-photo-29.png"})`}}  className='bgimage'></div>
-        </div>
-        <a className='play-link' href='/arena'><button className="play-button"><span className="text">Play the AI</span></button></a>
-    </div>
-    )
-}
+export const gameSlice = createSlice({
+	name: 'game',
+	initialState: {
+		level: 1,
+		isPlaying: false
+	},
+	reducers: {
+		setLevel: (state, action) => {
+			state.level = action.payload;
+		},
+		setPlay: (state) => {
+			state.isPlaying = true;
+		}
+	}
+})
 
-export default MainPage;
+export const gameActions = gameSlice.actions;
+
+export default gameSlice.reducer;

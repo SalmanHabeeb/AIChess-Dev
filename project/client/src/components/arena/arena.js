@@ -38,7 +38,6 @@ var chess = new Chess();
 var selectedPiece = null;
 var message = null;
 var promotionColor = null;
-var secondBackPiece = null;
 var promotionMove = null;
 
 var isSoundEffectAllowed = (navigator.deviceMemory >= 8);
@@ -51,6 +50,7 @@ const drawSound = new Audio("assets/sounds/draw_sound.wav");
 function Arena() {
     const [board, setBoard] = useState(new renderBoard());
     const DEPTH = useSelector((state) => state.game.level);
+    const COLOR = ['w', 'b'];
 
     function refresh() {
         setBoard(new renderBoard());
@@ -84,7 +84,7 @@ function Arena() {
     async function playSound() {
         if (isSoundEffectAllowed) {
             if (chess.isCheckmate()) {
-                if (chess.turn() === 'b') {
+                if (chess.turn() === COLOR[1]) {
                     await winSound.play();
                 }
                 else {
@@ -130,7 +130,7 @@ function Arena() {
         }
         else {
             message = null;
-        }  
+        }
     }
 
     function highlightByIds(ids) {
@@ -139,28 +139,31 @@ function Arena() {
         }
     }
 
-    async function fetchBestMove() {
+    async function makePostRequest(data) {
         let response = null;
         try {
-          response = await fetch("https://aichess.onrender.com/api", {
+          response = await fetch("/api", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            fen: chess.fen(),
-            depth: `${DEPTH}`
-          })});
+          body: JSON.stringify(data)});
         }
         catch(err){
-          console.log(err);
+            console.log(err);
         }
         const message = await response.json();
-        return message[0]["move"];
+        return message;
     }
 
     async function playModelMove() {
-        if (chess.turn() === 'b') {
+        if (chess.turn() === COLOR[1]) {
             // let compMove = chess.moves()[Math.floor(Math.random()*chess.moves().length)];
-            let compMove = await fetchBestMove();
+            let request = await makePostRequest(
+                {
+                    pgn: chess.pgn(),
+                    depth: `${DEPTH}`
+                }
+            );
+            let compMove = request[0]['move'];
             if (compMove === undefined) {
                 compMove = chess.moves()[Math.floor(Math.random()*chess.moves().length)];
             }
@@ -198,13 +201,13 @@ function Arena() {
         
         let movePlayed = false;
         if (!chess.isGameOver()) {
-            if (promoPiece === null) {
-                movePlayed = chess.move({from: selectedPiece.id, to: element.id});
-            }
-            else {
-                movePlayed = chess.move({from: secondBackPiece.id, to: element.id});
-            }
-            
+            // if (promoPiece === null) {
+            //     movePlayed = chess.move({from: selectedPiece.id, to: element.id});
+            // }
+            // else {
+            //     movePlayed = chess.move({from: secondBackPiece.id, to: element.id});
+            // }
+            movePlayed = chess.move({from: selectedPiece.id, to : element.id})
             if (movePlayed !== null) {
                 movePlayed = true;
                 playSound();
@@ -214,11 +217,11 @@ function Arena() {
         }
     }
 
-    function grabPiece(e: React.MouseEvent) {
-        const element: HTMLElement = e.target;
+    function grabPiece(e) {
+        const element = e.target;
         dehighlightTiles(element);
         if (element.classList.contains('piece')) {
-            if (/\W\w{2}\./.exec(element.style.backgroundImage)[0].charAt(1) === 'w') {
+            if (chess.get(element.id).color === COLOR[0]) {
                 if (selectedPiece !== null) {
                     selectedPiece.style.border = 'none';
                     selectedPiece = null;
@@ -227,17 +230,16 @@ function Arena() {
                 element.style.border = '3px inset gray';
                 selectedPiece = element;
             }
-            else if (/\W\w{2}\./.exec(element.style.backgroundImage)[0].charAt(1) === 'b') {
-                if ((selectedPiece !== null) & (/\W\w{2}\./.exec(selectedPiece.style.backgroundImage)[0].charAt(1) === 'w')) {
-                    let str = /\W\w{2}\./.exec(selectedPiece.style.backgroundImage);
-                    let pawnColor = str[0].charAt(1);
-                    let verticalAxisPawnPosition = selectedPiece.id.charAt(1);
-                    let isPawn = (str[0].charAt(2) === 'p');
-                    let isPrePromotionTile = (pawnColor === 'w' & verticalAxisPawnPosition === '7') | (pawnColor === 'b' & verticalAxisPawnPosition === '2');
+            else if (chess.get(element.id).color === COLOR[1]) {
+                if ((selectedPiece !== null) & (chess.get(selectedPiece.id).color === COLOR[0])) {
+                    let pieceColor = chess.get(selectedPiece.id).color;
+                    let verticalAxisPiecePosition = selectedPiece.id.charAt(1);
+                    let isPawn = (chess.get(selectedPiece.id).type === 'p');
+                    let isPrePromotionTile = (pieceColor === COLOR[0] & verticalAxisPiecePosition === '7') | (pieceColor === COLOR[1] & verticalAxisPiecePosition === '2');
                     if (isPrePromotionTile & isPawn) {
                         if (chess.move({from: selectedPiece.id, to: element.id, promotion: 'q'})) {
                             promotionMove = {from: selectedPiece.id, to: element.id, promotion: 'q'}
-                            promotionColor = pawnColor;
+                            promotionColor = pieceColor;
                             chess.undo();
                             refresh();
                         }
@@ -246,20 +248,20 @@ function Arena() {
                         pushPieces(element);
                     }
                 }
+                selectedPiece.style.border = 'None';
                 selectedPiece = element;
             }
         }
         else if (element.classList.contains('tile')) {
             if (selectedPiece !== null) {
-                let str = /\W\w{2}\./.exec(selectedPiece.style.backgroundImage);
-                let pawnColor = str[0].charAt(1);
-                let isPawn = (str[0].charAt(2) === 'p');
-                let verticalAxisPawnPosition = selectedPiece.id.charAt(1);
-                let isPrePromotionTile = (pawnColor === 'w' & verticalAxisPawnPosition === '7') | (pawnColor === 'b' & verticalAxisPawnPosition === '2');
+                let pieceColor = chess.get(selectedPiece.id).color;
+                let isPawn = (chess.get(selectedPiece.id).type === 'p');
+                let verticalAxisPiecePosition = selectedPiece.id.charAt(1);
+                let isPrePromotionTile = (pieceColor === COLOR[0] & verticalAxisPiecePosition === '7') | (pieceColor === COLOR[1] & verticalAxisPiecePosition === '2');
                 if (isPrePromotionTile & isPawn) {
                     if (chess.move({from: selectedPiece.id, to: element.id, promotion: 'q'})) {
                         promotionMove = {from: selectedPiece.id, to: element.id, promotion: 'q'};
-                        promotionColor = pawnColor;
+                        promotionColor = pieceColor;
                         chess.undo();
                         refresh();
                     }

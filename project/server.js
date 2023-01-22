@@ -20,10 +20,12 @@ var bodyParser = require('body-parser');
 var jsonParser = bodyParser.json();
 
 app.post('/api', jsonParser, (req, res) => {
-    let fen = req.body.fen;
+    let pgn = req.body.pgn;
+    // console.log(pgn);
     let depth = req.body.depth;
+    // console.log(utils.getBestMove(pgn, depth))
     let response = [
-        {"move": utils.getBestMove(fen, depth)}
+        {"move": utils.getBestMove(pgn, depth)}
     ];
     res.json(response);
 })

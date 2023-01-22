@@ -21,22 +21,14 @@
 // // along with this program.  
 // // If not, see [GNU General Public License](https://www.gnu.org/licenses/).
 
-import React from 'react';
-import './main.css';
+import { configureStore } from '@reduxjs/toolkit'
+import gameReducer from "./gameSlice";
 
-function MainPage() {
-    return (
-    <div className='main'>
-        <div className='link-box'>
-            <div className='text-cont'>
-                <div className='title'>AIChess</div>
-                <div id="info" className='info'>A web based chess engine</div>
-            </div>
-            <div style={{backgroundImage: `url(${"assets/images/hq-chess-pieces-transparent-hd-photo-29.png"})`}}  className='bgimage'></div>
-        </div>
-        <a className='play-link' href='/arena'><button className="play-button"><span className="text">Play the AI</span></button></a>
-    </div>
-    )
-}
 
-export default MainPage;
+const store = configureStore({
+	reducer: {
+		game: gameReducer
+	}
+})
+
+export default store;
